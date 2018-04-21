@@ -59,7 +59,8 @@ def RR_scheduling(process_list, time_quantum):
     rr = []
     for process in process_list:
         if switch_time == None:
-            running_process = process
+            rr.append(process)
+            running_process = rr.pop(0)
             current_time = running_process.arrive_time
             schedule.append((current_time, running_process.id))
             if time_quantum > running_process.burst_time:
@@ -87,6 +88,20 @@ def RR_scheduling(process_list, time_quantum):
                 else:
                     switch_time = None
             rr.append(process)
+    while len(rr) > 0:
+        current_time = switch_time
+        if running_process.burst_time > 0:
+            running_process.arrive_time = current_time
+            rr.append(running_process)
+        running_process = rr.pop(0)
+        waiting_time += (current_time - running_process.arrive_time)
+        schedule.append((current_time, running_process.id))
+        if time_quantum > running_process.burst_time:
+            switch_time = current_time + running_process.burst_time
+            running_process.burst_time = 0
+        else:
+            switch_time = current_time + time_quantum
+            running_process.burst_time -= time_quantum
     average_waiting_time = waiting_time/float(len(process_list))
     return schedule, average_waiting_time
 
@@ -235,7 +250,7 @@ def main(argv):
     FCFS_schedule, FCFS_avg_waiting_time =  FCFS_scheduling(copy.deepcopy(process_list))
     write_output('FCFS.txt', FCFS_schedule, FCFS_avg_waiting_time )
     print ("simulating RR ----")
-    RR_schedule, RR_avg_waiting_time =  RR_scheduling(copy.deepcopy(process_list),time_quantum = 2)
+    RR_schedule, RR_avg_waiting_time =  RR_scheduling(copy.deepcopy(process_list),time_quantum = 10)
     write_output('RR.txt', RR_schedule, RR_avg_waiting_time )
     print ("simulating SRTF ----")
     SRTF_schedule, SRTF_avg_waiting_time =  SRTF_scheduling(copy.deepcopy(process_list))
